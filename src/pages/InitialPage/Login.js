@@ -1,112 +1,109 @@
+/**
+ * Signin Firebase
+ */
+
 import React, { useEffect, useState } from 'react';
-import { HelmetProvider ,Helmet } from "react-helmet-async";
+import { Helmet, HelmetProvider } from "react-helmet-async";
 import { Link, useNavigate } from 'react-router-dom';
-import { useForm, Controller } from 'react-hook-form'
+import IMAGEROUTER from '../../routes/ImgRouters'
+import { useForm, } from 'react-hook-form'
 import { emailrgx } from '../../constant/index'
 import { setTempEmailId, clearTempEmailId } from '../../utils/storageConstants'
-import IMAGEROUTER from '../../routes/ImgRouters';
-// import axios from 'axios'
+import { useDispatch, useSelector } from 'react-redux';
+import { login, RESET } from '../../redux/reducers/loginSlice';
 
 
-const Loginpage = (props) => {
+const initialState = {
+  emailId: "",
+  password: "",
+};
+
+const Loginpage = () => {
 
   const [eye, seteye] = useState(true);
-
-
-
-  const [emailId, setEmailId] = useState("")
-  const [password, setPassword] = useState("")
   const [successMsg, setSuccessMsg] = useState("")
+  const [formData, setFormData] = useState(initialState);
+  const { emailId, password } = formData;
 
+  const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const {
-    control,
-    setError,
-    clearErrors,
-    formState: { errors },
-  } = useForm()
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
 
-  useEffect(() => {
-    if (emailId) {
-      setTempEmailId(emailId)
-    }
-  }, [emailId])
+  const { isLoading, isLoggedIn, isSuccess, message, isError, } =
+    useSelector((state) => state.login);
 
-
-  async function loginApi() {
-    const url = "http://localhost:3000/login";
-    const inputs = JSON.stringify({ emailId, password })
-    const options = {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-      },
-      body: inputs,
-    }
-    try {
-      const req = await fetch(url, options);
-      const res = await req.json();
-      console.log(req);
-      return res;
-    } catch (err) { console.log(err) }
-
-  }
-
-  const LoginSubmit = async (e) => {
+  const loginUser = async (e) => {
     e.preventDefault();
+
     if (emailId === "" || password === "") {
       return setError('error', {
         message: "The required field is empty"
       })
+    } else {
+      clearErrors('error')
     }
 
-    if (!emailrgx.test(emailId)) {
+    if (!emailrgx(emailId)) {
       setError('email', {
         message: "Invalid email"
       })
-    }
-
-
-    const loginRequest = await loginApi();
-    if (loginRequest.times === 2) {
-      setSuccessMsg("Logged in successfull")
-      clearErrors(['email', 'password', 'error'])
-      setTimeout(() => {
-        navigate('app/dashboard')
-      }, 500)
-      clearTempEmailId(emailId)
-    } else if (loginRequest.times === 1 && emailrgx.test(emailId)) {
-      navigate('/createpassword')
     } else {
-      setError('error', {
-        message: loginRequest.msg,
-      })
-      return navigate('/login')
+      clearErrors('email')
     }
-  }
+
+    const userData = {
+      emailId,
+      password,
+    };
+
+    console.log(userData);
+    dispatch(login(userData));
+  };
+
+
+  useEffect(() => {
+    if (isSuccess && isLoggedIn) {
+      navigate("app/dashboard");
+    }
+
+    if (isError) {
+      return navigate('/login');
+    }
+
+    if (emailId) {
+      setTempEmailId(emailId)
+    }
+
+    dispatch(RESET());
+  }, [isLoggedIn, isSuccess, dispatch, navigate, isError]);
+
+  const {
+    setError,
+    clearErrors,
+    formState: { errors },
+  } = useForm()
 
   const onEyeClick = () => {
     seteye(!eye)
   }
 
   return (
-
-
-    //format: shift+Alt+F
     <>
       <HelmetProvider>
-        <div>
-          <Helmet>
-            <title>Login - qBotica</title>
-            <meta name="description" content="Login page" />
-          </Helmet>
-        </div>
+        <Helmet>
+          <title>Login - qBotica</title>
+          <meta name="description" content="Login page" />
+        </Helmet>
       </HelmetProvider>
+
       <div className="account-content">
         {/* <Link to="/applyjob/joblist" className="btn btn-primary apply-btn">Apply Job</Link> */}
         <div className="container">
+          {isLoading}
           {/* Account Logo */}
           <div className="account-logo">
             <Link to="/login"><img src={IMAGEROUTER.AppLogo} alt="Qbotica" /></Link>
@@ -118,18 +115,17 @@ const Loginpage = (props) => {
               <p className="account-subtitle"></p>
               {/* Account Form */}
               <div>
-                <form onSubmit={LoginSubmit}>
+                <form onSubmit={loginUser}>
                   {successMsg && <div className='task-success'>{successMsg}</div>}
                   <small>{errors?.error?.message}</small>
                   <div className="form-group">
                     <label>Email Address</label>
-                    <Controller
-                      name="email"
-                      control={control}
-                      render={({ field: { value, onChange } }) => (
-                        <input className={`form-control  ${errors?.email ? "error-input" : ""}`} type="text" value={value} onChange={(e) => setEmailId(e.target.value)} />
-
-                      )}
+                    <input className={`form-control  ${errors?.emailId ? "error-input" : ""}`}
+                      name="emailId"
+                      type="emailId"
+                      value={emailId}
+                      onChange={handleInputChange}
+                      autoComplete="off"
                     />
                     <small>{errors?.email?.message}</small>
                   </div>
@@ -144,17 +140,15 @@ const Loginpage = (props) => {
                         </Link>
                       </div>
                     </div>
-                    <Controller
-                      name="password"
-                      control={control}
-                      render={({ field: { value, onChange } }) => (
-                        <div className="pass-group">
-                          <input type={eye ? "password" : "text"} className={`form-control  ${errors?.password ? "error-input" : ""}`} value={value} onChange={(e) => setPassword(e.target.value)} autoComplete="false" />
-                          <span onClick={onEyeClick} className={`fa toggle-password" ${eye ? "fa-eye-slash" : "fa-eye"}`} />
-                        </div>
-                      )}
-
-                    />
+                    <div className="pass-group">
+                      <input type={eye ? "password" : "text"} className={`form-control  ${errors?.password ? "error-input" : ""}`}
+                        name="password"
+                        value={password}
+                        onChange={handleInputChange}
+                        autoComplete="off"
+                      />
+                      <span onClick={onEyeClick} className={`fa toggle-password" ${eye ? "fa-eye-slash" : "fa-eye"}`} />
+                    </div>
                     <small>{errors?.password?.message}</small>
                   </div>
                   <div className="form-group text-center">

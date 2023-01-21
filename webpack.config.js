@@ -2,6 +2,7 @@ const path = require('path');
 const webpack = require('webpack');
 const HTMLWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 
 
 const publicPath = '/';
@@ -19,6 +20,7 @@ module.exports = {
   plugins: [
     new HTMLWebpackPlugin({
       template: './public/index.html',
+      filename: "./index.html",
       favicon: "./public/favicon.png",
     }),
     new MiniCssExtractPlugin(),
@@ -28,14 +30,6 @@ module.exports = {
       'window.jQuery': 'jquery'
     })
   ],
-  externals: {
-    // global app config object
-    config: JSON.stringify({
-      apiUrl: '',
-      imageapiUrl: '',
-      publicPath: '/'
-    })
-  },
 
   module: {
     rules: [
@@ -44,18 +38,13 @@ module.exports = {
         exclude: /node_modules/,
         use: {
           loader: 'babel-loader',
-          options: {
-            //pollyfill required
-            presets: [['@babel/preset-env', { targets: "defaults", "debug": true, "useBuiltIns": "usage", "corejs": 3 }], ['@babel/preset-react', { runtime: "automatic" }]]
-          }
         }
       },
 
       {
-        test: /\.(s[ac]|c)ss$/i,
+        test: /\.(css|scss)$/i,
         use: [{
           loader: MiniCssExtractPlugin.loader,
-          options: { publicPath: "/" },
         },
           "css-loader",
           "postcss-loader",
@@ -78,15 +67,24 @@ module.exports = {
 
   devServer: {
     hot: true,
-    port: 7000,
+    port: 8001,
     open: true,
     historyApiFallback: true,
     historyApiFallback: {
       disableDotRule: true
     },
   },
+
+  optimization: {
+    minimizer: [new UglifyJsPlugin()],
+  },
+
+  performance: {
+    hints: process.env.NODE_ENV === 'production' ? "warning" : false
+  },
   // proxy: {
   //   '/api': 'http://localhost:3000',
   //   changeOrigin: true,
   // },
 }
+
