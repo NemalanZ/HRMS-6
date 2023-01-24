@@ -41,6 +41,7 @@ const mainPages = createBrowserRouter(
       </Route>
       <Route path='*' element={<Error404 />} />
     </Route>
+    
   )
 )
 

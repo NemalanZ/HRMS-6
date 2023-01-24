@@ -47,15 +47,15 @@ const Sidebar = () => {
                   <ul>
                     <li><Link 
                     // className={'/manage-jobs' ? "active" : ""} 
-                    to="jobs"
+                    to="dashboard/jobs"
                     > Manage Jobs </Link></li>
                     <li><Link 
                     // className={'/candidates' ? "active" : ""} 
-                    to="candidates"
+                    to="/candidates"
                     > Candidates List </Link></li>
                     <li><Link 
                     // className={'/manage-resumes' ? "active" : ""} 
-                    to="manage-resumes"
+                    to="/manage-resumes"
                     > Manage Resumes </Link></li>
                     {/* <li><Link className={pathname.includes('shortlist-candidates') ? "active" : ""} to="/app/administrator/shortlist-candidates"> Shortlist Candidates </Link></li> */}
                   </ul>

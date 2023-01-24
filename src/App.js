@@ -1,7 +1,9 @@
 import React from 'react';
-import { BrowserRouter  } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, createBrowserRouter } from 'react-router-dom';
 import LoginRoutes from './routes/LoginRoutes';
 // import MainRoutes from './routes/MainRoutes';
+
+import UseRoutes from './useRoutes';
 
 import 'bootstrap'
 
@@ -33,13 +35,11 @@ import './assets/css/style.css';
 
 
 
+
 function App() {
   return (
     <div className='App'>
-      <BrowserRouter>
-        <LoginRoutes />
-        {/* <MainRoutes/> */}
-      </BrowserRouter>
+      <UseRoutes />
     </div>
 
   );
